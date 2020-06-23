@@ -3,6 +3,8 @@ This repository contains surface energy balance (SEB) and subsurface model (SSM)
 
 The code is in the `code/` directory, while the `examples/` directory includes the necessary input files and script to model melt on Kaskawulsh Glacier in the 2018 melt season.
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3903939.svg)](https://doi.org/10.5281/zenodo.3903939)
+
 ## Installation
 Simply clone the repository and add the path to your Matlab path,
 ```
@@ -91,12 +93,6 @@ Attribute | Units |  Description
 `albedo` | -- | Surface albedo
 `QT` | W m<sup>-2</sup> | Warming heat flux
 `QM` | W m<sup>-2</sup> | Melting heat flux
-
-
-
-
-
-
 
 ## Examples
 The `examples/kaskawulsh/` directory contains an example case and is a good place to start. This case models melt on Kaskawulsh Glacier in 2018, not including surface shading since that makes the model run much slower.
