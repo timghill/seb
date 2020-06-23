@@ -1,5 +1,5 @@
 # SEB-clean
-This repository contains surface energy balance (SEB) and subsurface model (SSM) code written in Matlab, as developed for Kaskawulsh and Naluday (Lowell) Glaciers, St. Elias Mountains, Yukon.
+This repository contains surface energy balance (SEB) and subsurface model (SSM) code written in Matlab, developed for Kaskawulsh and Naluday (Lowell) Glaciers, St. Elias Mountains, Yukon.
 
 The code is in the `code/` directory, while the `examples/` directory includes the necessary input files and script to model melt on Kaskawulsh Glacier in the 2018 melt season.
 
