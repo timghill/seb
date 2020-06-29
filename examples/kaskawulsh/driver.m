@@ -8,8 +8,8 @@ addpath('../../code/')
 %% Controls:
 % Paths
 sim.paths.output='outputs/';
-sim.paths.dem='data/kask_dem.mat';
-sim.paths.albedo='data/kask_mean_albedo.mat';
+sim.paths.dem='data/dem.mat';
+sim.paths.albedo='data/albedo.mat';
 
 % Parameters
 sim.params.phi=60.76;       % Set latitude (degrees) of study site
@@ -30,7 +30,7 @@ sim.params.cast_shadows=false;      % Run with shading of glacier surface
 sim.params.run_subsurface_model=true;
 
 % Load forcing. See documentation for required fields
-sim.forcing=load('data/kask_forcing_2018.mat');
+sim.forcing=load('data/forcing.mat');
 
 % Now you can run the model
 run_seb(sim);
