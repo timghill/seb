@@ -26,8 +26,8 @@ sim.params.T_elev=1154;     % Elevation of temperature measurements. Used to spa
 sim.params.T_lapse_rate=3.9770e-3;  % Temp lapse rate (C.m-1)
 
 % Switches
-sim.params.cast_shadows=false;      % Run with shading of glacier surface
-sim.params.run_subsurface_model=true;
+sim.params.cast_shadows=true;      % Run with shading of glacier surface
+sim.params.run_subsurface_model=false;
 
 % Load forcing. See documentation for required fields
 sim.forcing=load('data/forcing.mat');
