@@ -1,5 +1,12 @@
 function [normal, slope, aspect] = get_normal(dem)
-% function norm computes the surface normal vector of a DEM
+% get_normal computes the surface normal vector of a DEM
+%
+%   [normal, slope, aspect] = get_normal(dem)
+%
+% Uses a finite-difference central discretization scheme to calculate the
+% normal vector for each cell in the DEM. The slope and aspect are then
+% computed exactly from the components of the unit normal vector.
+
 Z = dem.Z;
 Z(2:size(Z,1)+1, 2:size(Z,2)+1) = Z;
 Z(size(Z,1)+1, :) = Z(end,:);

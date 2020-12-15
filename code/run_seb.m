@@ -1,27 +1,46 @@
-function run_seb_struct(sim)
+function run_seb(sim)
+% run_seb runs the surface energy balance model with given params.
+%
 % Carry out surface energy balance model simulation with specifications
-% set in the structure sim. sim: struct with fields
-%   paths: struct with fields
-%           output: directory to save outputs into
-%           dem: path to DEM file (.mat)
-%          optional:
-%           albedo: path to file storing albedo (uses constant albedo
-%                   if not passed)
-%   params: struct with mandatory fields
-%           * phi: latitude in degrees (for radiation model)
-%           * tout: Time step between model outputs (hours)
-%                   (model is computed according to forcing time step)
-%           Optional fields: any model parameters
-%   forcing: Met. fields to force model, with mandatory fields
-%             forcing.T:        Temperature (C)
-%             forcing.RH:       Relative humidity (%)
-%             forcing.LWin:     Inward LW radiation (W.m-2)
-%             forcing.P:        Air pressure (Pa)
-%             forcing.SWin:     Inward SW radiation (W.m-2)
-%             forcing.tt:       Datetime of observation
-%             forcing.u:        Wind speed (m.s-1)
-%             forcing.t:        Decimal hour in local solar time (h)
-% -----------------------------------------------------------------------
+% set in the structure sim.
+% 
+% sim
+%   struct with fields
+%       paths: [1×1 struct]
+%      params: [1×1 struct]
+%     forcing: [1×1 struct]
+%
+% Each of these structures is as follows:
+%
+% sim.paths: Model input and output directory paths
+%   struct with fields
+%     output: [char] directory to save outputs into
+%        dem: [char] path to DEM file (.mat)
+%     albedo: [char] path to file storing albedo (uses constant albedo if not passed)
+%
+% sim.params: Simulation parameters
+%   struct with mandatory fields
+%        phi: Latitude in degrees
+%       tout: Time step between model outputs (hours)
+%             (model is computed according to forcing time step)
+% Any additional model parameters can be specified here
+%
+% sim.forcing: Meteorological forcing
+%   struct with fields
+%      LWin: [N×1 double] Inward LW radiation (W.m-2)
+%         P: [N×1 double] Air pressure (Pa)
+%        RH: [N×1 double] Relative humidity (%)
+%      SWin: [N×1 double] Inward SW radiation (W.m-2)
+%         T: [N×1 double] Temperature (C)
+%         t: [N×1 double] Decimal hour in local solar time (h)
+%        tt: [N×1 datetime] Datetime of observation
+%         u: [N×1 double] Wind speed (m.s-1)
+% where N is the number of forcing timesteps
+%
+% See the package-level documentation in the `README.md` file in the root
+% directory for more information about parameters and options. Also see the
+% example in the `../examples` directory for sample usage
+
 %% Default parameters
 default.sigma=5.670374e-8;  % Boltzmann (W.m-2.k-4)
 default.eps_s=1;            % Ice/snow emissivity

@@ -1,5 +1,8 @@
 function SEB=seb(forcing,dem,phi,J,t,params)
-% Usage: SEBout=seb2(data_dir,para)
+% seb calculates the surface energy balance for a single timestep
+%
+%   SEBout = seb2(forcing, dem, phi, J, t, params)
+%
 % Compute energy balance components and net heat flux for specified
 % forcing, DEM data, and location and time. See docs/ folder for
 % a description of this model.
@@ -10,12 +13,8 @@ function SEB=seb(forcing,dem,phi,J,t,params)
 %         Ts: distributed surface temperature (C)
 %         RH: Relative humidity (%, 0-100)
 %       LWin: Downward longwave radiation (W.m-2)
-%      LWout: Upward longwave radiation (W.m-2)
 %          P: Pressure (mbar)
-%     RH_aws: Relative humidity (%, 0-100) at AWS (far above ice surface)
 %       SWin: Downward shortwave radiation (W.m-2)
-%      SWout: Upward shortwave radiation (W.m-2)
-%      T_aws: Air temp at weather station (C)
 %         tt: Datetime object
 %          u: Surface wind speed
 %          t: Decimal hour (local solar time, e.g. 16:45=4.75)
