@@ -1,155 +1,184 @@
-function shaded = shade_dem(dem, s, delta)
-% shaded(dem) computes which cells are shaded in the dem for the given
-% solar vector.
-% dem should be a structure with the following attributes:
-%   l: Grid spacing (same in x and y)
-%   X: size (Ny, Nx) x coordinate
-%   Y: size (Ny, Nx) y coordinate
-%   Z: size (Ny, Nx) surface elevation
-if s(3)<0
-shaded=zeros(size(dem.xx));
-return;
-end
-Zview = dem.Z;
-Xview = dem.xx;
-Yview = dem.yy;
+function shadows=doshade(dem, s)
+% function doshade computes DEM shading according to Corripio (2003,
+% IJGIS). This code was translated from the Fortran F90 code in the git
+% repo https://github.com/cran/insol/blob/master/src/doshade.f90 and R
+% package https://meteoexploration.com/R/insol/insol.pdf. Original
+% reference: https://doi.org/10.1080/713811744
 
-% Make X array be decreasing
-if Xview(1,end) < Xview(1,1)
-Xview=Xview(:,end:-1:1);
-end
+rows=size(dem.Z,1);
+cols=size(dem.Z,2);
 
-% Shift dem to start at 0
-Xview=Xview-Xview(1,1);
-Yview=Yview-Yview(1,1);
-l = dem.l;
-Nx = size(Xview, 2);
-Ny = size(Yview, 1);
-Lx = l*Nx;
-Ly = l*Ny;
+inversesunvector=-s/max(abs(s(1:2)));
+normalsunvector(3)=sqrt(s(1)^2 + s(2)^2);
+normalsunvector(1)=-s(1)*s(3)/normalsunvector(3);
+normalsunvector(2)=-s(2)*s(3)/normalsunvector(3);
 
-% Flip DEM left-right or up-down to put the sun in the "southwest" corner
-flip_lr = false;
-flip_ud = false;
-xsign = 1;
-ysign = 1;
+z=dem.Z;
+l=dem.l;
+% SUBROUTINE doshade(dem, sunvector, cols, rows, dl, sombra)
+% IMPLICIT NONE
+% INTEGER :: cols, rows, newshape(2)
+% DOUBLE PRECISION :: z(cols,rows), sombra(cols, rows), dem(cols*rows),sunvector(3)
+% INTEGER :: idx, jdy, n, i, j, f_i, f_j, casx, casy
+% DOUBLE PRECISION :: inversesunvector(3), normalsunvector(3), vectortoorigin(3)
+% DOUBLE PRECISION :: dl, dx, dy, zprojection, zcompare
+% inversesunvector = -sunvector/Maxval(ABS(sunvector(1:2)))
+% normalsunvector(3)=sqrt(sunvector(1)**2+sunvector(2)**2)
+% normalsunvector(1)=-sunvector(1)*sunvector(3)/normalsunvector(3)
+% normalsunvector(2)=-sunvector(2)*sunvector(3)/normalsunvector(3)
+% newshape(1)=cols
+% newshape(2)=rows
+% z=reshape(dem,newshape)
 
-v = -s;
-vx=v(1);vy=v(2);vz=v(3);
-if vx<0
-    flip_lr = true;
-    Zview = fliplr(Zview);
-    vx = -vx;
-    xsign = -1;
-    s(1) = -s(1);
-end
-
-if vy<0
-    flip_ud = true;
-    Zview = flipud(Zview);
-    vy = -vy;
-    ysign = -1;
-    s(2) = - s(2);
-end
-shaded_view = zeros(size(dem.xx));
-
-s = s/norm(s);
-sxy = [0 0 -1];
-ss0 = cross(s, sxy);
-
-if s(3)<0
-    shaded=shaded_view;
+if s(1)<0
+    f_i=1;
 else
+    f_i=cols;
+end
 
-% Vector defining the solar plane
-sp = cross(s, ss0/norm(ss0));
+if s(2)<0
+    f_j=1;
+else
+    f_j=rows;
+end
+% !*** casx is an integer, this makes the value large enough to compare effectively
+% casx=NINT(1e6*sunvector(1))        
+% casy=NINT(1e6*sunvector(2))
+% SELECT CASE (casx)
+% !******** case (:0) means sunvector(x) negative, 
+% ! sun is on the West: beginning of grid cols
+% CASE (:0)    
+% f_i=1            !** fixed i_value
+% CASE default
+% f_i=cols
+% END SELECT
+% SELECT CASE (casy)
+% !******** case (:0) sunvector(y) negative, 
+% ! Sun is on the North: beginning of grid rows
+% CASE (:0)
+% f_j=1
+% CASE default 
+% f_j=rows
+% END SELECT
+% !******************* Grid scanning *******************************
+% !*** the array sombra stores the shaded cells, it is set 
+% !*** to 1 before the grid scanning.
+% !*****************************************************************
+shadows=ones(rows,cols);
 
-% Generate the indices of the outside edges
-starting_indices = [1:size(Yview, 1), ones(1, size(Xview, 2) - 1);
-                    ones(1, size(Yview, 1)), 2:size(Xview, 2)]';
+j=f_j;
+for i=1:cols
+    n=0;
+    zcompare=-inf;
+    
+    idx=round(i);
+    idy=round(j);
+    
+    dx=0;
+    dy=0;
+    
+    while idx>=1 && idx<=cols && idy>=1 && idy<=rows
 
-% For each starting point, trace ray through DEM and compute projection
-%  onto vector sp to determine if cell is shaded or in sun
-for i=1:size(starting_indices, 1)
-    projs = [];
+        
+%         idx;
+        
+%         idx
     
-    starti = starting_indices(i, 1);
-    startj = starting_indices(i, 2);
-    startX = Xview(starti, startj);
-    startY = Yview(starti, startj);
-    
-    curX = startX;
-    curY = startY;
-    tileX = floor(curX/l) + 1;
-    tileY = floor(curY/l) + 1;
-    t = 0;    
-    
-    while curX>=0 && curX<Lx+l && curY>=0 && curY<Ly+l
-        
-        if tileX>=1 && tileX<=Nx && tileY>=1 && tileY<=Ny
-        px = curX - startX;
-        py = curY - startY;
-        pz = Zview(tileY, tileX) - Zview(starti, startj);
-        if px == startX
-            px = px + 0.5*l*vx/norm([vx,vy]);
-        end
-        if py == startY
-            py = py + 0.5*l*vy/norm([vx,vy]);
-            
-        end
-        
-        proj = [px, py, pz]*sp';
-        if proj < 0
-            proj = 0;
-        end
-        
-        projs = [projs proj];
-        if tileY>0 && tileX>0
-            if proj<max(projs) - delta
-                shaded_view(tileY, tileX) = 1;
-            end
-        end
-        end
-        
-        if vx~=0 && vy~=0
-            dtx = (tileX*l - curX) / vx;
-            dty = (tileY*l - curY) / vy;
-        elseif vx==0
-            dtx=inf;
-            dty = (tileY*l - curY) / vy;
-        elseif vy==0
-            dty=inf;
-            dtx = (tileX*l - curX) / vx;
-        end
-        
-        if dty<dtx
-           t = t + dty;
-           tileY = tileY + 1;
-        elseif dtx<dty
-           t = t + dtx;
-           tileX = tileX + 1;
-        else
-           t = t + dtx;
-           tileX = tileX + 1;
-           tileY = tileY + 1;
-        end
-        
-        curX = startX + vx*t;
-        curY = startY + vy*t;
+       vectortoorigin(1)=dx*l;
+       vectortoorigin(2)=dy*l;
+       vectortoorigin(3)=z(idy,idx);
+       
+       zprojection=dot(vectortoorigin,normalsunvector);
+       if zprojection<zcompare
+           shadows(idy,idx)=0;
+       else
+           zcompare=zprojection;
+       end
+       n=n+1;
+       
+       
+        idx=round(i+dx);
+        idy=round(j+dy);
+        dx=inversesunvector(1)*n;
+        dy=inversesunvector(2)*n;
     end
 end
 
-shaded = shaded_view;
-if flip_lr
-    shaded = fliplr(shaded);
-end
-if flip_ud
-    shaded = flipud(shaded);
-end
+% sombra = 1
+% j=f_j
+% DO i=1, cols        
+%     n = 0
+%     zcompare = -HUGE(zcompare) !** initial value lower than any possible zprojection
+%     DO 
+%         dx=inversesunvector(1)*n
+%         dy=inversesunvector(2)*n
+%         idx = NINT(i+dx)
+%         jdy = NINT(j+dy)
+%         IF ((idx < 1) .OR. (idx > cols) .OR. (jdy < 1) .OR. (jdy > rows)) exit
+%         vectortoorigin(1) = dx*dl
+%         vectortoorigin(2) = dy*dl
+%         VectortoOrigin(3) = z(idx,jdy)
+%         zprojection = Dot_PRODUCT(vectortoorigin,normalsunvector)
+%         IF (zprojection < zcompare) THEN 
+%             sombra(idx,jdy) = 0 
+%             ELSE
+%             zcompare = zprojection
+%         END IF  
+%         n=n+1
+%     END DO 
+% END DO
+% i=f_i
 
-% Post process - make sure the edges aren't shaded
-shaded(1:end, 1) = 0;
-shaded(1, 1:end) = 0;
-shaded(1:end, end) = 0;
-shaded(end, 1:end) = 0;
+i=f_i;
+for j=1:rows
+    n=0;
+    zcompare=-inf;
+    
+    dx=0;
+    dy=0;
+    idx=i;
+    idy=j;
+    while idx>=1 && idx<=cols && idy>=1 && idy<=rows
+
+    
+       vectortoorigin(1)=dx*l;
+       vectortoorigin(2)=dy*l;
+       vectortoorigin(3)=z(idy,idx);
+       
+       zprojection=dot(vectortoorigin,normalsunvector);
+       if zprojection<zcompare
+           shadows(idy,idx)=0;
+       else
+           zcompare=zprojection;
+       end
+       n=n+1;
+       dx=inversesunvector(1)*n;
+        dy=inversesunvector(2)*n;
+    
+    idx=round(i+dx);
+    idy=round(j+dy);
+    end
 end
+% DO j=1,rows
+%     n = 0
+%     zcompare = -HUGE(zcompare)  !** initial value lower than any possible zprojection
+%     DO 
+%         dx=inversesunvector(1)*n    
+%         dy=inversesunvector(2)*n
+%         idx = NINT(i+dx)
+%         jdy = NINT(j+dy)
+%         IF ((idx < 1) .OR. (idx > cols) .OR. (jdy < 1) .OR. (jdy > rows)) exit
+%         vectortoorigin(1) = dx*dl
+%         vectortoorigin(2) = dy*dl
+%         VectortoOrigin(3) = z(idx,jdy)
+%         zprojection = Dot_PRODUCT(vectortoorigin,normalsunvector)
+%         IF (zprojection < zcompare) THEN 
+%             sombra(idx,jdy) = 0 
+%             ELSE
+%             zcompare = zprojection
+%         END IF  
+%         n=n+1
+%     END DO 
+% END DO
+% END SUBROUTINE doshade
+%   

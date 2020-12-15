@@ -38,7 +38,6 @@ default.T_lapse_rate=3.9770e-3;         % Temperature lapse rate (C.m-1)
 default.alpha=0.35;         % Cuffey and Paterson, clean ice, p. 146
 default.T_elev=760.153;     % lowell glacier lower dGPS station elevation
 default.g=9.81;             % Acceleration due to gravity (m.s-2)
-default.delta=5;            % Constant in shadow casting algorithm (m)
 default.cast_shadows=true;  % Control shadow casting
 default.Lf=333.55e3;        % Latent heat of fusion of water (J.kg-1)
 default.rhoice=850;         % Density of ice (Kg.m-3)
@@ -143,20 +142,6 @@ for i=1:nsteps
         model_forcing.Ts=ssm.T(:,:,1);
     else
         model_forcing.Ts=zeros(size(dem.Z));
-    end
-
-    % Only compute shading in 10 day intervals 
-    if params.cast_shadows
-            shading_file=sprintf([params.output,'shading_%03d_%02d.mat'],10*floor(J/10),hour(forcing.tt(i)));
-        if ~isfile(shading_file)
-            % Need to compute phi in radians
-            phi_rad=params.phi*pi/180;
-%            disp('phi, J, and t')
-%            disp(phi_rad); disp(J); disp (forcing.t(i))
-            s=get_solar_vector(phi_rad,J,forcing.t(i));
-            shadowmask=shade_dem(dem, s, params.delta);
-            save(shading_file,'shadowmask');
-        end
     end
     
     SEBout=seb(model_forcing,dem,params.phi,J,model_forcing.t,params);

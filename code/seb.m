@@ -112,20 +112,10 @@ else
     SW=SW.*intensity;
 end
 
+% Shade the DEM
 if params.cast_shadows
-    % Shading (0=sun, 1=shade)
-%     shademask=shade_dem(dem, s, params.delta);
-%     SW(shademask==1) = 0;
-    daynum=day(forcing.tt,'dayofyear');
-    shading_file=sprintf([params.output,'shading_%03d_%02d.mat'],10*floor(daynum/10),hour(forcing.tt));
-    if isfile(shading_file)
-        shademask=load(shading_file);
-        shademask=shademask.shadowmask;
-    else
-        disp(['Shading file ' shading_file ' not found!'])
-    end
-     SW(shademask==1)=0;
-%     disp('Using precomputed shading array')
+    shademask=shade_dem(dem, s);
+    SW(shademask==1)=0;
 end
 
 % Diffuse SW contribution
