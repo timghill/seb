@@ -27,7 +27,7 @@ Attribute | Description
 `sim.forcing` | Matlab structure with attributes given in Table 2.
 `sim.params` | Structure containing any non-default parameters to run model with (see default values table). You will typically specify at least `sim.params.lat`, the latitude of the glacier; `sim.params.tout`, the frequency of model outputs; and `sim.params.deltat`, the frequency of the input meteorological forcing.
 
-**Table 2**: Meteorological attributes required to run the model, including units.
+Table 2**: Meteorological attributes required to run the model, including units.
 
 Attribute | Units | Description
 ----------|-------|--------------------
@@ -58,7 +58,6 @@ Attribute | Units | Default value | Description
 `Rv` | J kg<sup>-1</sup> K<sup>-1</sup> | 461.495 | Water vapour ideal gas constant
 `g` | m s<sup>-2</sup> | 9.81 | Gravitational acceleration
 `alpha` | -- | 0.35 | Ice surface albedo, if not using spatially distributed albedo as an input
-`delta` | m | 5 | Constant used in surface shading algorithm to remove grid artifacts
 `T_lapse_rate` | <sup>o</sup>C m<sup>-1</sup> | 3.9770e-3 | Temperature lapse rate (Positive means temperatures decrease with elevation)
 `z0` | m | 0.003 | Momentum roughness length
 `z0H` | m | 0.00003 | Heat roughness length
